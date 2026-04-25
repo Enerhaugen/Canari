@@ -1,139 +1,135 @@
+import socketpool
+import wifi
+from adafruit_httpserver import Request, Response, Server, POST
 import board
 import digitalio
 import adafruit_character_lcd.character_lcd as character_lcd
 import time
 import pwmio
 import analogio
-import busio
-from digitalio import DigitalInOut, Direction, Pull
 from adafruit_pm25.i2c import PM25_I2C
+import busio
 
-reset_pin = None
-i2c = busio.I2C(board.GP7, board.GP6, frequency=100000)
-# Connect to a PM2.5 sensor over I2C
-pm25 = PM25_I2C(i2c, reset_pin)
-airquality = pm25.read()
+buzzer = pwmio.PWMOut(board.GP18, variable_frequency=True) #Defined buzzer, using guide: https://learn.adafruit.com/using-piezo-buzzers-with-circuitpython-arduino/circuitpython
+buzzer.frequency = 440
 
-#Deefines microphone
-mic = analogio.AnalogIn(board.GP27)
-#Variables to measure sound
-low_sound = 0
-high_sound = 0
-
-#Defines the LCD screen
-lcd_rs = digitalio.DigitalInOut(board.GP28)
-lcd_e = digitalio.DigitalInOut(board.GP16)
-lcd_db4 = digitalio.DigitalInOut(board.GP26)
-lcd_db5 = digitalio.DigitalInOut(board.GP22)
-lcd_db6 = digitalio.DigitalInOut(board.GP21)
-lcd_db7 = digitalio.DigitalInOut(board.GP20)
-lcd_columns = 16
-lcd_rows = 2
-lcd = character_lcd.Character_LCD_Mono(lcd_rs, lcd_e, lcd_db4, lcd_db5, lcd_db6, lcd_db7, lcd_columns, lcd_rows)
-
-#Defines Vibration Sensor
-vibration = digitalio.DigitalInOut(board.GP0) #Vibration is defined as the input from slot GP16 in the Raspberry Pi Pico.
-vibration.direction = digitalio.Direction.INPUT
-vibration_count = 0
-no_vibration_count = 0
-timer_vibration = time.monotonic() #Time monotonic returns seconds in float.
-timer_sound = time.monotonic()
-timer_air = time.monotonic()
-#Defines LED
-led = digitalio.DigitalInOut(board.GP19)
+led = digitalio.DigitalInOut(board.GP21) #Defined LED using guide: https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs
 led.direction = digitalio.Direction.OUTPUT
-
-#Defines buzzer
-buzzer = pwmio.PWMOut(board.GP18, variable_frequency=True)
 OFF = 0
 ON = 2**15
-
-
-def warning_on():
+def warning():
     buzzer.duty_cycle = ON
     led.value = True
-    led.value = True
     time.sleep(5)
-
-def warning_off():
-    lcd.clear()#Clears the LCD Screen
-    buzzer.duty_cycle = OFF #turns of speaker
-    led.value = False #Turns off led warning light
+    buzzer.duty_cycle = OFF
+    led.value = False
     
+    
+AP_SSID = "..."
+AP_PASSWORD = "12345678"
 
+print("Creating access point...")
+wifi.radio.start_ap(ssid=AP_SSID, password=AP_PASSWORD)
+print(f"Created access point {AP_SSID}")
+
+pool = socketpool.SocketPool(wifi.radio)
+server = Server(pool, "/static", debug=True)
+
+
+@server.route("/message1", POST)
+def receive_message(request: Request):
+    data = request.body.decode("utf-8")
+    print("Melding 1 mottatt:", data)
+    warning()
+    #LCD code
+    time.sleep(3)
+    return Response(request, "OK")
+
+@server.route("/message2", POST)
+def receive_message(request: Request):
+    data = request.body.decode("utf-8")
+    print("Melding 2 mottatt:", data)
+    warning()
+    #LCD code
+    time.sleep(3)
+    return Response(request, "OK")
+    
+server.start(str(wifi.radio.ipv4_address_ap))
+
+#Defining the PMSA00I AQ Sensor, as seen in the example provided here: https://learn.adafruit.com/pmsa003i/python-circuitpython
+reset_pin = None
+
+i2c = busio.I2C(board.GP1, board.GP0, frequency=100000)
+
+pm25 = PM25_I2C(i2c, reset_pin)
+
+print("Found PM2.5 sensor, reading data...")
+
+#defines microphone
+mic = analogio.AnalogIn(board.GP28)
+
+warning_sent_hour = 0
+warning_sent_immidiate = 0
+
+#warning_immidiate_cooldown = hva enn immidiate er
+warning_hourly_cooldown = 0
 while True:
-    time.sleep(0.5)
+    server.poll()
+    time.sleep(0.1)
+    if warning_sent_hour >= 1:
+        warning_hourly_cooldown -= 1
+        print(warning_hourly_cooldown)
+    
+    print(warning_hourly_cooldown)
+    #Sound Measuring Code
+    sound_samples = []
+    for sample in range (50):
+        sound_samples.append(mic.value)
+    min_sample = min(sound_samples)
+    max_sample = max(sound_samples)
+    
+    
+    
+    peaktopeak = max_sample - min_sample
+    print(peaktopeak)
+    
+    if warning_sent_hour < 2:
+        if peaktopeak >= 20000 and warning_hourly_cooldown == 0:
+            warning_sent_hour += 1
+            warning()
+            print("Hourly Warnings sent: ", warning_sent_hour)
+            warning_hourly_cooldown = 300000
+        
+            #lcdkode -> fare innen 1 time
+    
+    
+    if warning_sent_immidiate < 3:
+        if peaktopeak >= 25000:
+            warning_sent_immidiate += 1
+            warning()
+            print("Immidiate Warnings sent :", warning_sent_immidiate)
+            #lcdkode -> umiddelbar hørsel fare
+    
+    
     try:
-        airquality = pm25.read()
+        aqdata = pm25.read() 
+        threshold_pm25 = 45 #Threshold defined through Time Weighted Average fro an 8 hour workday.
+        threshold_pm10 = 135 #Threshold defined through Time Weighted Average fro an 8 hour workday.
+        
+        pm250 = aqdata["pm25 standard"]
+        pm100 = aqdata["pm100 standard"]
+        print(pm250)
+        print(pm100)
+        
     except RuntimeError:
         print("Unable to read from sensor, retrying...")
         continue
+    if pm250 >= threshold_pm25:
+        warning()
+        #LCD code
+    elif pm100 >= threshold_pm10:
+        warning()
+        #LCD code
     
-    airquality_pm10 = airquality["pm10 env"]
-    airquality_pm25 = airquality["pm25 env"]
-    airquality_pm100 = airquality["pm100 env"]
-    
-    if airquality_pm10 > 2:
-        warning_on()
-        print("PM10 AQ")
-        time.sleep(5)
-        warning_off()
-        
-    elif airquality_pm25 > 5:
-        warning_on()
-        print("PM25 AQ")
-        time.sleep(5)
-        warning_off()
-    elif airquality_pm100 > 10:
-        warning_on()
-        print("PM100 AQ")
-        time.sleep(5)
-        warning_off()
-        
-        
-    if vibration.value == True:
-        vibration_count += 1#Adds 1 to the vibration_count value to be used when the time is up.
-        print("Vibration Detected!", vibration_count, "\n #############") #Prints if the sensor detects a vibration
-        time.sleep(0.5) 
-        
-        
-    else:
-        no_vibration_count += 1 #Adds a one to the no_vibartion_count variable when no vibrations are detected.
-        print("No Vibration Detected.", no_vibration_count,  "\n #############") #Prints when no vibrations are detected by the sensor.
-    
-    
-    
-    
-     #Defines the vibration warnings.   
-    if vibration_count >=10:
-        print("Warning, Vibration")
-        lcd.message("Too much vibration! \n Take a Break!")
-        warning_on()
-        warning_off()
-        vibration_count = 0
-        no_vibration_count = 0
-        
-    elif no_vibration_count >= 10:
-        print("ikke for mye vibrasjon.")
-        vibration_count = 0
-        no_vibration_count = 0
-            
-        
-    if mic.value > 40000:
-        high_sound += 1
-        print("Høy lyd!", high_sound, "\n ###################")
-    else:
-        low_sound += 1
-        print("lav lyd.", low_sound, "\n ###################")
-    
-    if high_sound >= 10:
-        print("For høy lyd!")
-        warning_on()
-        lcd.message("Loud Enviroment, \n Please wear safety gear")
-        warning_off()
-        high_sound = 0
-    if low_sound >= 10:
-        print("Ikke for lav lyd")
-        high_sound = 0
-        low_sound = 0
+
     
