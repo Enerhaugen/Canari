@@ -15,5 +15,32 @@ This allows us to recieve the messages from the client and handle them according
 Connecting the ESP32 to the Raspberry Pi Pico Access Point:
 
 
+In order to connect to the access point created on the Pi Pico, the documentation specifies that we must use the wifi.radio.connect, and specify the networks SSID and its password. Found under class wifi.Radio - Connect in the documentation: 
+
+https://docs.circuitpython.org/en/10.0.3/shared-bindings/wifi/index.html 
+
+The connection logic was placed in a while-loop and a try-except block, to ensure that the program will continously try to connect to the server if the initial attempt fails. When connection has been established, the while loop will break. 
+
+To send the data to the server, we utilzed the adafruit_requests.Session class, with the post function to send a HTTP post request to the server. After the post request is sent, we use the .close() function in order to free the socket. The URL in the post requests was specified to reach the relevant server routes. Documentation was found here, under adafruit_requests.Response, and adafruit_requests.Session:
+
+https://docs.circuitpython.org/projects/requests/en/latest/api.html#implementation-notes
+
+An example of implementation was found here: 
+https://docs.circuitpython.org/projects/requests/en/2.0.5/examples.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
