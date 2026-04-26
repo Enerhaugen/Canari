@@ -17,11 +17,54 @@ In order to handle both of the warnings from the ESP32, we created two distinct 
 This allows us to recieve the messages from the client and handle them accordingly. An example of an implementation of @server.route is provided in the API Documentation under "route". https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
 
 
+### Warning Functionality
+
+The warning functionality consists of a Piezo Buzzer, an LED Diode, and and OLED Screen. 
+
+The piezo buzzer was configured using a guide: https://learn.adafruit.com/using-piezo-buzzers-with-circuitpython-arduino/circuitpython
+
+The buzzer functionality was then placed in the warning() function. 
+
+The LED functionality was also defined using a guide: https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs
+
+Likewise, the LED was also placed in the warning() function.
+
+#### OLED Forklaring her
+
+### PMSA003I Air Quality Sensor
+
+The Air quality sensor was configured using this guide: 
+https://learn.adafruit.com/pmsa003i/python-circuitpython
+
+The data provided by the pm25.read() function is a key value pair, where the key is a string, and value is an int. This value can therefore be compared to a defined threshold, and whenever the threshold is reached, we can activate the warning() function and display a message on the OLED screen. The guide has already read the pm25.read() data as "aqdata". We can therefore define variables as such to read specific data from the dictionary:
+
+pm250 = aqdata["pm25 standard"]
+
+This can then be used in comparison with our thresholds. The thresholds were calculated using the time-weighted average for an 8 hour workday. The user will recieve a warning if they are exposed more particulate matter than they can safely breathe in an 8 hour period. The safe value threshold for PM10 exposre is 135. For PM2.5, its 45. 
+
+
+
+### MAX4466 Mic Amp
+
+To read accurate values from the MAX4466 microphone, we took inspiration from the following guide:
+
+https://lastminuteengineers.com/max4466-arduino-tutorial/
+
+The guide details how we can read peak-to-peak values from the microphone to achieve accurate readings. The difference between the implementation found in the guide and our program, is that we use an array to gather 50 samples instead of any time functions.  When the array has 50 samples, we define two variables - min_sample and max_sample. min_sample is set to the lowest value found in the array, and max_samples is set to the highest. 
+
+To find the peak-to-peak value, we subtract min_sample from max_sample. This becomes our peak-to-peak value. We can use this value to define decibels, by utilizing a sound source and a sound meter. If the peak-to-peak value exceeds ... decibel, the user will recieve a warning, and a message on the OLED that they should equip proper safety equipment. If the peak-to-peak value exceeds ... decibel, they will recieve a warning, informing them that they are exposed to very high noise levels an may imminently recieve hearing damage if they are not wearing safety equipment.
+
+To avoid the warnigns becoming a nuiscance, we will only send two warnings of exposure to decibel levels over ..., and three warnings of decibel levels over ... . The warnings will have an interval of 5 minutes between them.
 
 
 ## code.py
 
 code.py is used in the ESP32. It contains the connection logic to handle the connection to the Raspberry Pi Pico, as well as the vibration sensor logic.
+
+
+When the warning() function is called, the LED and Piezo Buzzer will all activate for 5 seconds, before turning off. To halt the program for a period of time, we used the time library, which gives us access to time related functionality. In this case, time.sleep was utilizd, which slept the program for 5 seconds before resuming and turning off the warnings. The function is used whenever the threshold for sound or air is reached, or when the server recieves a post request from the client.
+
+
 
 ### Connecting the ESP32 to the Raspberry Pi Pico Access Point and sending post requests:
 
@@ -38,6 +81,8 @@ https://docs.circuitpython.org/projects/requests/en/latest/api.html#implementati
 
 An example of implementation was found here: 
 https://docs.circuitpython.org/projects/requests/en/2.0.5/examples.html
+
+
 
 
 ### Vibration sensor logic
