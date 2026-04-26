@@ -1,6 +1,11 @@
-Code Documentation:
+# Code Documentation:
 
-Initializing Server:
+## main.py
+
+
+main.py is where most of the functionality is located. It contains the warning logic, microphone code and air quality sensor code, as well as the server code.
+
+### Initializing Server and recieving requests:
 
 In order to initialize the server, we used the Circuitpython HTTPServer library. As The Canari is supposed to work even without WiFi, we have to create a Manual Access Point, which will all<ow the ESP32 to connect to the Raspberry Pi Pico. An example of initializing the server was found in the HTTPServer library documentation, under Manual AP(Access Point): https://docs.circuitpython.org/projects/httpserver/en/stable/starting_methods.html
 It important to note that the example uses the server.serve_forever function, which halted the program before the while-loop could be initiated. This was substituted by using the server.poll() function instead inside of the while-loop to continually check for any new requests form the ESP32. To use the server.poll() function, we must also use the server.start function. An example of this was found in the HTTPServer documentation under Tasks between requests: https://docs.circuitpython.org/projects/httpserver/en/stable/examples.html
@@ -12,7 +17,12 @@ In order to handle both of the warnings from the ESP32, we created two distinct 
 This allows us to recieve the messages from the client and handle them accordingly. An example of an implementation of @server.route is provided in the API Documentation under "route". https://docs.circuitpython.org/projects/httpserver/en/latest/api.html
 
 
-Connecting the ESP32 to the Raspberry Pi Pico Access Point:
+
+## code.py
+
+code.py is used in the ESP32. It contains the connection logic to handle the connection to the Raspberry Pi Pico, as well as the vibration sensor logic.
+
+### Connecting the ESP32 to the Raspberry Pi Pico Access Point and sending post requests:
 
 
 In order to connect to the access point created on the Pi Pico, the documentation specifies that we must use the wifi.radio.connect, and specify the networks SSID and its password. Found under class wifi.Radio - Connect in the documentation: 
