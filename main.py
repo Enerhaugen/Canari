@@ -54,9 +54,9 @@ def receive_message(request: Request):
     time.sleep(3)
     return Response(request, "OK")
     
-server.start(str(wifi.radio.ipv4_address_ap))
 
-#Defining the PMSA00I AQ Sensor, as seen in the example provided here: https://learn.adafruit.com/pmsa003i/python-circuitpython
+
+
 reset_pin = None
 
 i2c = busio.I2C(board.GP1, board.GP0, frequency=100000)
@@ -65,7 +65,7 @@ pm25 = PM25_I2C(i2c, reset_pin)
 
 print("Found PM2.5 sensor, reading data...")
 
-#defines microphone
+
 mic = analogio.AnalogIn(board.GP28)
 
 warning_sent_hour = 0
@@ -73,6 +73,10 @@ warning_sent_immidiate = 0
 
 #warning_immidiate_cooldown = hva enn immidiate er
 warning_hourly_cooldown = 0
+warning_immidiate_cooldown = 0
+
+
+server.start(str(wifi.radio.ipv4_address_ap))
 while True:
     server.poll()
     time.sleep(0.1)
@@ -98,7 +102,7 @@ while True:
             warning_sent_hour += 1
             warning()
             print("Hourly Warnings sent: ", warning_sent_hour)
-            warning_hourly_cooldown = 300 #5 minutter mellom varsel
+            warning_hourly_cooldown = 300 #Defined after first message is sent
         
             #lcdkode -> fare innen 1 time
     
@@ -108,6 +112,7 @@ while True:
             warning_sent_immidiate += 1
             warning()
             print("Immidiate Warnings sent :", warning_sent_immidiate)
+            warning_immidiate_cooldown = 120 #2 minutter mellom hver varsel
             #lcdkode -> umiddelbar hørsel fare
     
     
@@ -118,6 +123,7 @@ while True:
         
         pm250 = aqdata["pm25 standard"]
         pm100 = aqdata["pm100 standard"]
+        
         print(pm250)
         print(pm100)
         
@@ -132,4 +138,6 @@ while True:
         #LCD code
     
 
+    
+    
     
