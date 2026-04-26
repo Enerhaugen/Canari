@@ -79,7 +79,7 @@ while True:
             response = requests.post("http://192.168.4.1:5000/message2", data=message_daily)
             print("Daily Message Sent!")
             response.close()
-            vibration_count_daily = 1560 
+            vibration_count_daily = 1560 #Sets timer to 26 minutes, to warn the user again after 2 minutes if they continue vibrating.
             print("done")
             
             
