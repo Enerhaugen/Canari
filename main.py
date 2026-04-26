@@ -17,12 +17,14 @@ led = digitalio.DigitalInOut(board.GP21) #Defined LED using guide: https://learn
 led.direction = digitalio.Direction.OUTPUT
 OFF = 0
 ON = 2**15
-def warning():
+def warning_on():
     buzzer.duty_cycle = ON
     led.value = True
-    time.sleep(5)
+
+def warning_off():
     buzzer.duty_cycle = OFF
     led.value = False
+    
     
     
 AP_SSID = "..."
@@ -75,6 +77,11 @@ warning_sent_immidiate = 0
 warning_hourly_cooldown = 0
 warning_immidiate_cooldown = 0
 
+pm25_cooldown = 0
+pm100_cooldown = 0
+
+pm25_warnings_sent = 0
+pm100_warnings_sent = 0
 
 server.start(str(wifi.radio.ipv4_address_ap))
 while True:
@@ -102,17 +109,17 @@ while True:
             warning_sent_hour += 1
             warning()
             print("Hourly Warnings sent: ", warning_sent_hour)
-            warning_hourly_cooldown = 300 #Defined after first message is sent
+            warning_hourly_cooldown = 300000 #Defined after first message is sent, 5 minutes in milliseconds
         
             #lcdkode -> fare innen 1 time
     
     
     if warning_sent_immidiate < 3:
-        if peaktopeak >= 25000:
+        if peaktopeak >= 25000 and warning_immidiate_cooldown == 0:
             warning_sent_immidiate += 1
             warning()
             print("Immidiate Warnings sent :", warning_sent_immidiate)
-            warning_immidiate_cooldown = 120 #2 minutter mellom hver varsel
+            warning_immidiate_cooldown = 120000 #2 minutter mellom hver varsel, 2 minutes in milliseconds
             #lcdkode -> umiddelbar hørsel fare
     
     
@@ -130,13 +137,24 @@ while True:
     except RuntimeError:
         print("Unable to read from sensor, retrying...")
         continue
-    if pm250 >= threshold_pm25:
-        warning()
-        #LCD code
-    elif pm100 >= threshold_pm10:
-        warning()
-        #LCD code
+    if pm25_warnings_sent < 3:
+        if pm250 >= threshold_pm25 and pm25_cooldown == 0:
+            warning_on()
+            time.sleep(5)
+            warning_off()
+            pm25_cooldown = 300000
+            pm25_warnings_sent += 1
+            #LCD code
     
+    if pm100_warnings_sent < 3:
+        if pm100 >= threshold_pm10 and pm100_cooldown == 0:
+            warning_on()
+            time.sleep(5)
+            warning_off()
+            #LCD Kode
+            pm100_cooldown = 300000
+            pm100_warnings_sent += 1
+            
 
     
     
