@@ -98,7 +98,7 @@ while True:
             warning_sent_hour += 1
             warning()
             print("Hourly Warnings sent: ", warning_sent_hour)
-            warning_hourly_cooldown = 300000
+            warning_hourly_cooldown = 300 #5 minutter mellom varsel
         
             #lcdkode -> fare innen 1 time
     
