@@ -70,11 +70,11 @@ print("Found PM2.5 sensor, reading data...")
 
 mic = analogio.AnalogIn(board.GP28)
 
-warning_sent_hour = 0
+warning_sent_daily = 0
 warning_sent_immidiate = 0
 
 #warning_immidiate_cooldown = hva enn immidiate er
-warning_hourly_cooldown = 0
+warning_daily_cooldown = 0
 warning_immidiate_cooldown = 0
 
 pm25_cooldown = 0
@@ -87,11 +87,11 @@ server.start(str(wifi.radio.ipv4_address_ap))
 while True:
     server.poll()
     time.sleep(0.1)
-    if warning_sent_hour >= 1:
+    if warning_sent_daily >= 1:
         warning_hourly_cooldown -= 1
         print(warning_hourly_cooldown)
     
-    print(warning_hourly_cooldown)
+    print(warning_daily_cooldown)
     #Sound Measuring Code
     sound_samples = []
     for sample in range (50):
@@ -104,18 +104,18 @@ while True:
     peaktopeak = max_sample - min_sample
     print(peaktopeak)
     
-    if warning_sent_hour < 2:
+    if warning_sent_daily < 2:
         if peaktopeak >= 20000 and warning_hourly_cooldown == 0:
-            warning_sent_hour += 1
+            warning_sent_daily += 1
             warning()
-            print("Hourly Warnings sent: ", warning_sent_hour)
-            warning_hourly_cooldown = 300000 #Defined after first message is sent, 5 minutes in milliseconds
+            print("Hourly Warnings sent: ", warning_sent_daily)
+            warning_daily_cooldown = 300000 #Defined after first message is sent, 5 minutes in milliseconds
         
             #lcdkode -> fare innen 1 time
     
     
     if warning_sent_immidiate < 3:
-        if peaktopeak >= 25000 and warning_immidiate_cooldown == 0:
+        if peaktopeak >= 65000 and warning_immidiate_cooldown == 0:
             warning_sent_immidiate += 1
             warning()
             print("Immidiate Warnings sent :", warning_sent_immidiate)
@@ -157,5 +157,8 @@ while True:
             
 
     
+    
+    
+
     
     
