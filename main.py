@@ -42,18 +42,20 @@ server = Server(pool, "/static", debug=True)
 def receive_message(request: Request):
     data = request.body.decode("utf-8")
     print("Melding 1 mottatt:", data)
-    warning()
+    warning_on()
     #LCD code
     time.sleep(3)
+    warning_off()
     return Response(request, "OK")
 
 @server.route("/message2", POST)
 def receive_message(request: Request):
     data = request.body.decode("utf-8")
     print("Melding 2 mottatt:", data)
-    warning()
+    warning_on()
     #LCD code
     time.sleep(3)
+    warning_off()
     return Response(request, "OK")
     
 
@@ -109,7 +111,7 @@ while True:
             warning_sent_daily += 1
             warning()
             print("Hourly Warnings sent: ", warning_sent_daily)
-            warning_daily_cooldown = 300000 #Defined after first message is sent, 5 minutes in milliseconds
+            warning_daily_cooldown = 3000 #Defined after first message is sent, 5 minutes in milliseconds
         
             #lcdkode -> fare innen 1 time
     
@@ -119,7 +121,7 @@ while True:
             warning_sent_immidiate += 1
             warning()
             print("Immidiate Warnings sent :", warning_sent_immidiate)
-            warning_immidiate_cooldown = 120000 #2 minutter mellom hver varsel, 2 minutes in milliseconds
+            warning_immidiate_cooldown = 1200 #leaves 2 minutes until next warning
             #lcdkode -> umiddelbar hørsel fare
     
     
@@ -142,7 +144,7 @@ while True:
             warning_on()
             time.sleep(5)
             warning_off()
-            pm25_cooldown = 300000
+            pm25_cooldown = 3000
             pm25_warnings_sent += 1
             #LCD code
     
@@ -152,13 +154,6 @@ while True:
             time.sleep(5)
             warning_off()
             #LCD Kode
-            pm100_cooldown = 300000
+            pm100_cooldown = 3000
             pm100_warnings_sent += 1
             
-
-    
-    
-    
-
-    
-    
