@@ -23,11 +23,9 @@ The warning functionality consists of a Piezo Buzzer, an LED Diode, and and OLED
 
 The piezo buzzer was configured using a guide: https://learn.adafruit.com/using-piezo-buzzers-with-circuitpython-arduino/circuitpython
 
-The buzzer functionality was then placed in the warning() function. 
-
 The LED functionality was also defined using a guide: https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs
 
-Likewise, the LED was also placed in the warning() function.
+Both the Buzzer and the LED functionality was placed inside of the warning_on() and warning_off() functionality, that is called whenever a threshold is crossed.
 
 #### OLED Forklaring her
 
@@ -36,7 +34,7 @@ Likewise, the LED was also placed in the warning() function.
 The Air quality sensor was configured using this guide: 
 https://learn.adafruit.com/pmsa003i/python-circuitpython
 
-The data provided by the pm25.read() function is a key value pair, where the key is a string, and value is an int. This value can therefore be compared to a defined threshold, and whenever the threshold is reached, we can activate the warning() function and display a message on the OLED screen. The guide has already read the pm25.read() data as "aqdata". We can therefore define variables as such to read specific data from the dictionary:
+The data provided by the pm25.read() function is a key value pair, where the key is a string, and value is an int. This value can therefore be compared to a defined threshold, and whenever the threshold is reached, we can activate the warning functions and display a message on the OLED screen. The guide has already read the pm25.read() data as "aqdata". We can therefore define variables to read specific data from the dictionary:
 
 pm250 = aqdata["pm25 standard"]
 
@@ -52,13 +50,23 @@ https://lastminuteengineers.com/max4466-arduino-tutorial/
 
 The guide details how we can read peak-to-peak values from the microphone to achieve accurate readings. The difference between the implementation found in the guide and our program, is that we use an array to gather 50 samples instead of any time functions.  When the array has 50 samples, we define two variables - min_sample and max_sample. min_sample is set to the lowest value found in the array, and max_samples is set to the highest. 
 
-To find the peak-to-peak value, we subtract min_sample from max_sample. This becomes our peak-to-peak value. We can use this value to define decibels, by utilizing a sound source and a sound meter. If the peak-to-peak value exceeds 85 decibel, the user will recieve a warning, and a message on the OLED that they should equip proper safety equipment. If the peak-to-peak value exceeds 95 decibel, they will recieve a warning, informing them that they are exposed to very high noise levels an may imminently recieve hearing damage if they are not wearing safety equipment.
+To find the peak-to-peak value, we subtract min_sample from max_sample. This becomes our peak-to-peak value. We can use this value to define decibels, by utilizing a sound source and a sound meter. By utilizing this technique, we found that a peak-to-peak value of roughly 20 000 corresponds to about 85 decibels, which can damage hearing over an 8 hour workday. A peak to peak value of roughly 65 000 corresponds to about 95 decibels. If the peak-to-peak value exceeds either of these values, the warning functions will be called, and the user will recieve relevant information on the OLED display.
 
-To avoid the warnigns becoming a nuiscance, we will only send two warnings of exposure to decibel levels over 85, and three warnings of decibel levels over 95. The warnings will have an interval of 5 minutes between them.
 
-### Warning Cooldowns
+### Warnings and Warning Cooldowns
+When a threshold is crossed, a warning will be sent to the user. To avoid annoying the user, they will only recieve a limited amount of warnings. The user will therefore only recieve a warning if they have recieved fewer warnings then three. If they have recieved three warnings, we must assume that they have taken preemptive measures to avoid injury. This was done by defining a variable as 0 for each specific warning, and increasing it by 1 every time the relevant warning has been sent. If the user has recieved over 3 warnings, the warning functionality will not be called, nor the cooldowns reset.
 
-There must be a time interval between the users warnings, in order to avoid spamming them. To achieve this, we define variables such as warning_daily_cooldown before the loop is initiated. When a warning is sent, warning_daily_cooldown will be set to 120 000. For each time the loop is iterated, we will reduce this variable with 1. As the loop runs once every 0.1 seconds, 
+
+There must be a time interval between the users warnings, in order to avoid spamming them. To achieve this, we define variables such as warning_daily_cooldown before the loop is initiated. When a warning is sent, warning_daily_cooldown will be set to 30 000. As the variable will be subracted by 1 every iteration of the loop, and the loop runs once every 0.1 second, this will result in a cooldown of 5 minutes before a warning can be sent again. In cases where the health of the user is in immidiate danger, such as when they are exposed to over 95 decibels, the cooldown is slightly shorter, at 2 minutes.
+
+We used the Circuitpython Time library in order to run the loop once every 0.1 seconds using the time.sleep() function. This function sleeps the program for a set amount of time by defining time.sleep as 0.1 as such:
+
+time.sleep(0.1)
+
+This allows us to set timers and halt the program whenever needed, such as after every time warning_on() is called. This functionality was found in the time library documentation:
+
+https://docs.circuitpython.org/en/latest/shared-bindings/time/
+
 
 
 ## code.py
@@ -66,7 +74,9 @@ There must be a time interval between the users warnings, in order to avoid spam
 code.py is used in the ESP32. It contains the connection logic to handle the connection to the Raspberry Pi Pico, as well as the vibration sensor logic.
 
 
-When the warning() function is called, the LED and Piezo Buzzer will all activate for 5 seconds, before turning off. To halt the program for a period of time, we used the time library, which gives us access to time related functionality. In this case, time.sleep was utilizd, which slept the program for 5 seconds before resuming and turning off the warnings. The function is used whenever the threshold for sound or air is reached, or when the server recieves a post request from the client.
+When the warning() function is called, the LED and Piezo Buzzer will all activate for 5 seconds, before turning off. To halt the program for a period of time, we used the time library, which gives us access to time related functionality. In this case, time.sleep was utilized, which slept the program for 5 seconds before resuming and turning off the warnings. The function is used whenever the threshold for sound or air is reached, or when the server recieves a post request from the client.
+
+
 
 
 
@@ -101,10 +111,10 @@ In case the post request failed, we placed it in a try-exception block to retry 
 
 The vibration sensor itself was implemented using the circuitpython libraries board and digitalio. The board library is used with the digitalio library, and allows us to specify the pins used by the sensor. An example of implementation was found here: 
 
-# Er dette nok referering? hør med fahad
+
 https://learn.adafruit.com/circuitpython-libraries-on-any-computer-with-raspberry-pi-pico/gpio
 
-
+# Er dette nok referering? hør med fahad
 
 
 
