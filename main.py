@@ -106,7 +106,7 @@ while True:
     peaktopeak = max_sample - min_sample
     print(peaktopeak)
     
-    if warning_sent_daily < 2:
+    if warning_sent_daily < 3: #OPPDATER TIL 3 I PICO
         if peaktopeak >= 20000 and warning_hourly_cooldown == 0:
             warning_sent_daily += 1
             warning()
