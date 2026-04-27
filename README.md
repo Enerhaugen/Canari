@@ -52,9 +52,13 @@ https://lastminuteengineers.com/max4466-arduino-tutorial/
 
 The guide details how we can read peak-to-peak values from the microphone to achieve accurate readings. The difference between the implementation found in the guide and our program, is that we use an array to gather 50 samples instead of any time functions.  When the array has 50 samples, we define two variables - min_sample and max_sample. min_sample is set to the lowest value found in the array, and max_samples is set to the highest. 
 
-To find the peak-to-peak value, we subtract min_sample from max_sample. This becomes our peak-to-peak value. We can use this value to define decibels, by utilizing a sound source and a sound meter. If the peak-to-peak value exceeds ... decibel, the user will recieve a warning, and a message on the OLED that they should equip proper safety equipment. If the peak-to-peak value exceeds ... decibel, they will recieve a warning, informing them that they are exposed to very high noise levels an may imminently recieve hearing damage if they are not wearing safety equipment.
+To find the peak-to-peak value, we subtract min_sample from max_sample. This becomes our peak-to-peak value. We can use this value to define decibels, by utilizing a sound source and a sound meter. If the peak-to-peak value exceeds 85 decibel, the user will recieve a warning, and a message on the OLED that they should equip proper safety equipment. If the peak-to-peak value exceeds 95 decibel, they will recieve a warning, informing them that they are exposed to very high noise levels an may imminently recieve hearing damage if they are not wearing safety equipment.
 
-To avoid the warnigns becoming a nuiscance, we will only send two warnings of exposure to decibel levels over ..., and three warnings of decibel levels over ... . The warnings will have an interval of 5 minutes between them.
+To avoid the warnigns becoming a nuiscance, we will only send two warnings of exposure to decibel levels over 85, and three warnings of decibel levels over 95. The warnings will have an interval of 5 minutes between them.
+
+### Warning Cooldowns
+
+There must be a time interval between the users warnings, in order to avoid spamming them. To achieve this, we define variables such as warning_daily_cooldown before the loop is initiated. When a warning is sent, warning_daily_cooldown will be set to 120 000. For each time the loop is iterated, we will reduce this variable with 1. As the loop runs once every 0.1 seconds, 
 
 
 ## code.py
