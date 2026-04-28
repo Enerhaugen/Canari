@@ -75,7 +75,7 @@ mic = analogio.AnalogIn(board.GP28)
 warning_sent_daily = 0
 warning_sent_immidiate = 0
 
-#warning_immidiate_cooldown = hva enn immidiate er
+
 warning_daily_cooldown = 0
 warning_immidiate_cooldown = 0
 
@@ -106,7 +106,7 @@ while True:
     peaktopeak = max_sample - min_sample
     print(peaktopeak)
     
-    if warning_sent_daily < 3: #OPPDATER TIL 3 I PICO
+    if warning_sent_daily < 3: 
         if peaktopeak >= 20000 and warning_hourly_cooldown == 0:
             warning_sent_daily += 1
             warning()
