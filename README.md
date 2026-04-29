@@ -135,6 +135,22 @@ https://learn.adafruit.com/circuitpython-libraries-on-any-computer-with-raspberr
 
 # Er dette nok referering? hør med fahad
 
+Referanser 3D modeler deler:
+ESP32-S3
+https://grabcad.com/library/seeed-studio-xiao-esp32s3-1
+
+MAX4466
+https://grabcad.com/library/adafruit-max4466-module-1
+
+Arduino Pico: 
+https://grabcad.com/library/mbus-master-master-shield-for-arduino-mkr-1 
+
+SW-420:
+https://grabcad.com/library/sw-420-1
+
+PMSAA003I:
+https://github.com/adafruit/Adafruit_CAD_Parts/tree/main/4632%20PMSA003I 
+
 
 
 
