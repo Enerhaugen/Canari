@@ -33,14 +33,24 @@ def warning_on():
 def warning_off():
     buzzer.duty_cycle = OFF
     led.value = False
+    
+
+#PMSA003I
+
+
+reset_pin = None
+
+i2c = busio.I2C(board.GP1, board.GP0, frequency=100000)
+
+pm25 = PM25_I2C(i2c, reset_pin)
+
+print("Found PM2.5 sensor, reading data...")
 
 #OLED
 
 displayio.release_displays()
 
 oled_reset = None
-
-i2c = busio.I2C(board.GP1, board.GP0, frequency=100000) 
 
 display_bus = I2CDisplayBus(i2c, device_address=0x3C, reset=oled_reset)
 
@@ -99,14 +109,7 @@ def receive_message(request: Request):
 
 
 
-#PMSA003I
-reset_pin = None
 
-i2c = busio.I2C(board.GP1, board.GP0, frequency=100000)
-
-pm25 = PM25_I2C(i2c, reset_pin)
-
-print("Found PM2.5 sensor, reading data...")
 
 
 mic = analogio.AnalogIn(board.GP28)
@@ -143,7 +146,6 @@ while True:
     max_sample = max(sound_samples)
     
     
-    
     peaktopeak = max_sample - min_sample
     print(peaktopeak)
     
@@ -168,6 +170,7 @@ while True:
             warning_oled_text("Imminent hearing loss\nUse safety equipment")
             time.sleep(5)
             display.sleep()
+            warning_off()
             print("Immidiate Warnings sent :", warning_sent_immidiate)
             warning_immidiate_cooldown = 1200 #leaves 2 minutes until next warning
        
@@ -207,4 +210,5 @@ while True:
             warning_off()
             pm100_cooldown = 3000
             pm100_warnings_sent += 1
+            
             
