@@ -27,7 +27,11 @@ The LED functionality was also defined using a guide: https://learn.adafruit.com
 
 Both the Buzzer and the LED functionality was placed inside of the warning_on() and warning_off() functionality, that is called whenever a threshold is crossed.
 
-#### OLED Forklaring her
+
+
+
+
+
 
 ### PMSA003I Air Quality Sensor
 
@@ -40,6 +44,21 @@ pm250 = aqdata["pm25 standard"]
 
 This can then be used in comparison with our thresholds. The thresholds were calculated using the time-weighted average for an 8 hour workday. The user will recieve a warning if they are exposed more particulate matter than they can safely breathe in an 8 hour period. The safe value threshold for PM10 exposre is 135. For PM2.5, its 45. 
 
+
+#### OLED Screen
+
+The OLED will display usefull information and provide context to the warnings. An implementation of the OLED screen was found here: https://docs.circuitpython.org/projects/displayio_ssd1306/en/latest/examples.html
+
+To tailor the code to our purpose, we removed the bitmap and set the height to HEIGH // 5, to fit two rows of text on the screen. The functionality that activates the screen and displays text was placed inside of the warning_oled_text(message), in order to reduce redundant code as it will be used frequently. Oled_reset was set to none, and the busio and board libraries was used to set I2C to the correct pins. This solution was inspired by the setup-code from the PMSA003I, where busio was used in a similiar manner to use the correct pins. An example of such an implementation of busiowas found here under Circuitpython and python usage: https://learn.adafruit.com/pmsa003i/python-circuitpython
+
+The display.sleep() and display.wake() functions are used to sleep the OLED screen when no warnings are active, and wake the screen when a warning has been sent. Both functions were found here: https://docs.circuitpython.org/projects/displayio_ssd1306/en/latest/api.html
+
+
+Its important to note that both the PMSA003I and the OLED screen share the same pins - GP0 and GP1. When we tried to use different pins for the components, we recieved an error - ValueError: I2C peripheral in use
+
+A potential solution was found on raspberrypi's forum: https://forums.raspberrypi.com/viewtopic.php?t=328834#p1968307
+
+By connecting both components to the same pins and ensuring that they have different I2C adresses and initializing the i2c bus once, the issue was solved. We kept the example I2C adress provided by the OLED coding example (0x3). The PMSA003I already has a predefined adress (0x12), as seen here under Usage: https://learn.adafruit.com/pmsa003i/wippersnapper-setup
 
 
 ### MAX4466 Mic Amp
@@ -57,7 +76,7 @@ To find the peak-to-peak value, we subtract min_sample from max_sample. This bec
 When a threshold is crossed, a warning will be sent to the user. To avoid annoying the user, they will only recieve a limited amount of warnings. The user will therefore only recieve a warning if they have recieved fewer warnings then three. If they have recieved three warnings, we must assume that they have taken preemptive measures to avoid injury. This was done by defining a variable as 0 for each specific warning, and increasing it by 1 every time the relevant warning has been sent. If the user has recieved over 3 warnings, the warning functionality will not be called, nor the cooldowns reset.
 
 
-There must be a time interval between the users warnings, in order to avoid spamming them. To achieve this, we define variables such as warning_daily_cooldown before the loop is initiated. When a warning is sent, warning_daily_cooldown will be set to 30 000. As the variable will be subracted by 1 every iteration of the loop, and the loop runs once every 0.1 second, this will result in a cooldown of 5 minutes before a warning can be sent again. In cases where the health of the user is in immidiate danger, such as when they are exposed to over 95 decibels, the cooldown is slightly shorter, at 2 minutes.
+There must be a time interval between the users warnings, in order to avoid spamming them. To achieve this, we define variables such as warning_daily_cooldown before the loop is initiated. When a warning is sent, warning_daily_cooldown will be set to 3000. As the variable will be subracted by 1 every iteration of the loop, and the loop runs once every 0.1 second, this will result in a cooldown of 5 minutes before a warning can be sent again. In cases where the health of the user is in immidiate danger, such as when they are exposed to over 95 decibels, the cooldown is slightly shorter, at 2 minutes.
 
 We used the Circuitpython Time library in order to run the loop once every 0.1 seconds using the time.sleep() function. This function sleeps the program for a set amount of time by defining time.sleep as 0.1 as such:
 
