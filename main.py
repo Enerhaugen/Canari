@@ -39,7 +39,7 @@ def warning_off():
 
 
 reset_pin = None
-
+displayio.release_displays()
 i2c = busio.I2C(board.GP1, board.GP0, frequency=100000)
 
 pm25 = PM25_I2C(i2c, reset_pin)
@@ -71,9 +71,7 @@ def warning_oled_text(message):
     display.wake()
     return text
 
-#Server
-    
-    
+#Server    
 AP_SSID = "..."
 AP_PASSWORD = "12345678"
 
@@ -112,12 +110,12 @@ def receive_message(request: Request):
 
 
 
-mic = analogio.AnalogIn(board.GP28)
+mic = analogio.AnalogIn(board.GP27)
 
 warning_sent_daily = 0
 warning_sent_immidiate = 0
 
-warning_daily_cooldown = 0
+warning_hourly_cooldown = 0
 warning_immidiate_cooldown = 0
 
 pm25_cooldown = 0
@@ -136,7 +134,7 @@ while True:
         warning_hourly_cooldown -= 1
         print(warning_hourly_cooldown)
     
-    print(warning_daily_cooldown)
+    print(warning_hourly_cooldown)
    
    
     sound_samples = []
@@ -158,7 +156,7 @@ while True:
             display.sleep()
             warning_off()
             print("Hourly Warnings sent: ", warning_sent_daily)
-            warning_daily_cooldown = 3000 #Defined after first message is sent, 5 minutes in milliseconds
+            warning_hourly_cooldown = 3000 #Defined after first message is sent, 5 minutes in milliseconds
         
             
     
@@ -187,13 +185,17 @@ while True:
         print(pm250)
         print(pm100)
         
-    except RuntimeError:
+    except RuntimeError as e:
         print("Unable to read from sensor, retrying...")
+        print(e)
+        pm25 = PM25_I2C(i2c, reset_pin)
+        time.sleep(1)
+        
         continue
     if pm25_warnings_sent < 3:
         if pm250 >= threshold_pm25 and pm25_cooldown == 0:
             warning_on()
-            oled_warning_text("Bad Air Quality,\n Wear a mask")
+            warning_oled_text("Bad Air Quality,\n Wear a mask")
             time.sleep(5)
             display.sleep() #Dokumenter
             warning_off()
