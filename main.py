@@ -22,7 +22,7 @@ OFF = 0
 ON = 2**15
 
 #LED Diode
-led = digitalio.DigitalInOut(board.GP21) #Defined LED using guide: https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs
+led = digitalio.DigitalInOut(board.GP19) #Defined LED using guide: https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs
 led.direction = digitalio.Direction.OUTPUT
 
 
