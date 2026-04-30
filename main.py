@@ -133,15 +133,19 @@ while True:
     
     if warning_hourly_cooldown > 0:
         warning_hourly_cooldown -= 1
+        print("Warning Hourly Cooldown: ", warning_hourly_cooldown)
     
     if warning_immidiate_cooldown > 0:
         warning_immidiate_cooldown -= 1
+        print("Warning immidiate Cooldown: ", warning_immidiate_cooldown)
 
     if pm25_cooldown > 0:
         pm25_cooldown -= 1
+        print("PM-25 Warning Cooldown: ", pm25_cooldown)
 
     if pm100_cooldown > 0:
         pm100_cooldown -= 1
+        print("PM100 Warning Cooldown: ", pm_100_cooldown)
        
    
     sound_samples = []
@@ -152,7 +156,7 @@ while True:
     
     
     peaktopeak = max_sample - min_sample
-    print(peaktopeak)
+    print("Peak To Peak Value: ", peaktopeak)
     
     if warning_sent_daily < 3: 
         if peaktopeak >= 20000 and warning_hourly_cooldown == 0:
@@ -189,8 +193,8 @@ while True:
         pm250 = aqdata["pm25 standard"]
         pm100 = aqdata["pm100 standard"]
         
-        print(pm250)
-        print(pm100)
+        print("PM-25 Level: ", pm250)
+        print("PM-100 Level: ", pm100)
         
     except RuntimeError as e:
         print("Unable to read from sensor, retrying...")
