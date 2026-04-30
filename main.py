@@ -130,12 +130,19 @@ server.start(str(wifi.radio.ipv4_address_ap))
 while True:
     server.poll()
     time.sleep(0.1)
-    if warning_sent_daily >= 1:
-        warning_hourly_cooldown -= 1
-        print(warning_hourly_cooldown)
     
-    print(warning_hourly_cooldown)
-   
+    if warning_hourly_cooldown > 0:
+        warning_hourly_cooldown -= 1
+    
+    if warning_immidiate_cooldown > 0:
+        warning_immidiate_cooldown -= 1
+
+    if pm25_cooldown > 0:
+        pm25_cooldown -= 1
+
+    if pm100_cooldown > 0:
+        pm100_cooldown -= 1
+       
    
     sound_samples = []
     for sample in range (50):
@@ -190,8 +197,8 @@ while True:
         print(e)
         pm25 = PM25_I2C(i2c, reset_pin)
         time.sleep(1)
-        
-        continue
+        #continue - legg til denne igjen om det køker seg
+    
     if pm25_warnings_sent < 3:
         if pm250 >= threshold_pm25 and pm25_cooldown == 0:
             warning_on()
@@ -212,5 +219,3 @@ while True:
             warning_off()
             pm100_cooldown = 3000
             pm100_warnings_sent += 1
-            
-            
