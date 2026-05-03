@@ -91,6 +91,7 @@ def receive_message(request: Request):
     warning_oled_text("Too much vibration,\nTake a break!")
     time.sleep(5)
     display.sleep()
+    splash.pop()
     warning_off()
     return Response(request, "OK")
 
@@ -101,6 +102,8 @@ def receive_message(request: Request):
     warning_on()
     warning_oled_text("Reached Daily Dose!,\nStop Vibrating!")
     time.sleep(3)
+    display.sleep()
+    splash.pop()
     warning_off()
     return Response(request, "OK")
 @server.route("/message3", POST)
@@ -110,6 +113,7 @@ def receive_message(request: Request):
     warning_on()
     warning_oled_text("Connected!")
     time.sleep(3)
+    splash.pop()
     display.sleep()
     warning_off()
     return Response(request, "OK")
@@ -138,7 +142,12 @@ pm100_warnings_sent = 0
 
 server.start(str(wifi.radio.ipv4_address_ap))
 while True:
-    server.poll()
+    try:
+        server.poll()
+    except Exception as e:
+        print("Server poll error:")
+        print(e)
+        
     time.sleep(0.1)
     
     if warning_hourly_cooldown > 0:
@@ -155,7 +164,7 @@ while True:
 
     if pm100_cooldown > 0:
         pm100_cooldown -= 1
-        print("PM100 Warning Cooldown: ", pm_100_cooldown)
+        print("PM100 Warning Cooldown: ", pm100_cooldown)
        
    
     sound_samples = []
@@ -174,6 +183,7 @@ while True:
             warning_on()
             warning_oled_text("Loud Enviroment,\nUse safety equipment")
             time.sleep(5)
+            splash.pop()
             display.sleep()
             warning_off()
             print("Hourly Warnings sent: ", warning_sent_daily)
@@ -189,11 +199,13 @@ while True:
             warning_oled_text("Imminent hearing loss\nUse safety equipment")
             time.sleep(5)
             display.sleep()
+            splash.pop()
             warning_off()
             print("Immidiate Warnings sent :", warning_sent_immidiate)
             warning_immidiate_cooldown = 1200 #leaves 2 minutes until next warning
        
-    
+    pm250 = 0
+    pm100 = 0
     
     try:
         aqdata = pm25.read() 
@@ -218,7 +230,8 @@ while True:
             warning_on()
             warning_oled_text("Bad Air Quality,\n Wear a mask")
             time.sleep(5)
-            display.sleep() #Dokumenter
+            display.sleep()
+            splash.pop()
             warning_off()
             pm25_cooldown = 3000
             pm25_warnings_sent += 1
@@ -227,9 +240,10 @@ while True:
     if pm100_warnings_sent < 3:
         if pm100 >= threshold_pm10 and pm100_cooldown == 0:
             warning_on()
-            oled_warning_text("Bad Air Quality,\nWear a mask")
+            warning_oled_text("Bad Air Quality,\nWear a mask")
             time.sleep(5)
             display.sleep()
+            splash.pop()
             warning_off()
             pm100_cooldown = 3000
             pm100_warnings_sent += 1
