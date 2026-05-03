@@ -53,6 +53,10 @@ To tailor the code to our purpose, we removed the bitmap and set the height to H
 
 The display.sleep() and display.wake() functions are used to sleep the OLED screen when no warnings are active, and wake the screen when a warning has been sent. Both functions were found here: https://docs.circuitpython.org/projects/displayio_ssd1306/en/latest/api.html
 
+To avoid layering text on the OLED, we used splash.pop() in order to remove the text from the OLED screen. the pop() functionality was found in displayio's documentation, under displayio.Group():
+
+https://docs.circuitpython.org/en/latest/shared-bindings/displayio/
+
 
 Its important to note that both the PMSA003I and the OLED screen share the same pins - GP0 and GP1. When we tried to use different pins for the components, we recieved an error - ValueError: I2C peripheral in use
 
