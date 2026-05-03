@@ -103,6 +103,16 @@ def receive_message(request: Request):
     time.sleep(3)
     warning_off()
     return Response(request, "OK")
+@server.route("/message3", POST)
+def receive_message(request: Request):
+    data = request.body.decode("utf-8")
+    print("Connection Message Recieved:", data)
+    warning_on()
+    warning_oled_text("Connected!")
+    time.sleep(3)
+    display.sleep()
+    warning_off()
+    return Response(request, "OK")
 
 
 
@@ -223,3 +233,4 @@ while True:
             warning_off()
             pm100_cooldown = 3000
             pm100_warnings_sent += 1
+            
