@@ -100,7 +100,7 @@ def receive_message(request: Request):
     data = request.body.decode("utf-8")
     print("Melding 2 mottatt:", data)
     warning_on()
-    warning_oled_text("Reached Daily Dose!,\nStop Vibrating!")
+    warning_oled_text("Daily Limit!\nStop Vibrating!")
     time.sleep(3)
     display.sleep()
     splash.pop()
