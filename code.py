@@ -34,16 +34,19 @@ sent_measures = False
 while condition_connection:
     try: #Try-Except block to handle potential exceptions during the connection phase, if connection fails, it retries.
         wifi.radio.connect(WIFI_SSID, WIFI_PASSWORD)
+        pool = socketpool.SocketPool(wifi.radio)
+        requests = adafruit_requests.Session(pool)
         print(f"Connected to {WIFI_SSID}")
         response = requests.post("http://192.168.4.1:5000/message3", data=message_connection)
         print("Measures Message Sent!")
         response.close()
+        print("Connected, loop broken") #Confirms loop is broken for readability
         condition_connection = False
     except Exception as e:
         print("Feil ved tilkobling, prøver på nytt...")
         time.sleep(1)
             
-    print("Connected, loop broken") #Confirms loop is broken for readability
+    
     
 while True:
     while vibration_condition == True:
@@ -89,5 +92,4 @@ while True:
         except Exception as e:
             print("Couldnt send message, retrying...")
             time.sleep(1)
-        
         
